@@ -1,0 +1,1 @@
+resultados dos gráficos
