@@ -11,6 +11,7 @@ install.packages("dplyr")
 
 library(lubridate)
 library(dplyr)
+library(tidyr)
 
 # Converter para formato de data, especificando o formato
 dados <- dados %>%
@@ -37,3 +38,7 @@ resultado <- dados %>%
 # Exibir o resultado
 print(resultado)
 
+banco1 <- resultado %>%
+  pivot_wider(names_from = format, values_from = num_lancamentos, values_fill = 0)
+
+names(banco1) <- sub("X", "", names(banco1))
