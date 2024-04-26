@@ -13,35 +13,6 @@ library(lubridate)
 library(dplyr)
 library(tidyr)
 
-# Converter para formato de data, especificando o formato
-dados <- dados %>%
-  mutate(date_aired = tryCatch(as.Date(date_aired, format = "%Y-%m-%d"), error = function(e) NA))
-
-# Filtrar as linhas que foram convertidas com sucesso
-dados <- dados %>%
-  filter(!is.na(date_aired))
-
-# Extrair o ano
-dados <- dados %>%
-  mutate(year = year(date_aired))
-
-# Calcular a década
-dados <- dados %>%
-  mutate(decada = 10 * floor(year / 10))
-
-
-# Agrupar por década e formato de lançamento, e contar o número de lançamentos em cada grupo
-resultado <- dados %>%
-  group_by(decada, format) %>%
-  summarise(num_lancamentos = n())
-
-# Exibir o resultado
-print(resultado)
-
-banco1 <- resultado %>%
-  pivot_wider(names_from = format, values_from = num_lancamentos, values_fill = 0)
-
-names(banco1) <- sub("X", "", names(banco1))
 
 # arrumando theme_estat
 
@@ -72,66 +43,59 @@ theme_estat <- function(...) {
   )
 }
 
-#separando as decadas
 
-#1960
+# Converter para formato de data, especificando o formato
+dados <- dados %>%
+  mutate(date_aired = tryCatch(as.Date(date_aired, format = "%Y-%m-%d"), error = function(e) NA))
 
-banco_1960 <- banco1 %>%
-  filter(decada == "1960")
+# Filtrar as linhas que foram convertidas com sucesso
+dados <- dados %>%
+  filter(!is.na(date_aired))
 
-#grafico 1960 ## ajustar variaveis##
+# Extrair o ano
+dados <- dados %>%
+  mutate(year = year(date_aired))
 
-classes <- mpg %>%
-  filter(!is.na(class)) %>%
-  count(class) %>%
+# Calcular a década
+dados <- dados %>%
+  mutate(decada = 10 * floor(year / 10))
+
+
+#grafico
+
+# Agrupar por década e formato de lançamento, e contar o número de lançamentos em cada grupo
+
+banco1 <- dados %>%
+  group_by(decada, format)
+
+caminho_junior <- "resultados"
+
+banco1$decada <- as.factor(banco1$decada)
+
+banco1 <- banco1 %>%
+  group_by(decada, format) %>%
+  summarise(freq = n()) %>%
   mutate(
-    freq = n,
-    relative_freq = round((freq / sum(freq)) * 100, 1),
-    freq = gsub("\\.", ",", relative_freq) %>% paste("%", sep = ""),
-    label = str_c(n, " (", freq, ")") %>% str_squish()
+    freq_relativa = round(freq / sum(freq) * 100,1)
   )
-ggplot(classes) +
-  14
-aes(x = fct_reorder(class, n, .desc=T), y = n, label = label) +
-  geom_bar(stat = "identity", fill = "#A11D21", width = 0.7) +
+porcentagens <- str_c(banco1$freq_relativa, "%") %>% str_replace("
+\\.", ",")
+legendas <- str_squish(str_c(banco1$freq, " (", porcentagens, ")")
+)
+ggplot(banco1) +
+  aes(
+    x = decada, y = freq,
+    fill = format, label = legendas
+  ) +
+  geom_col(position = position_dodge2(preserve = "single", padding =
+                                        0)) +
   geom_text(
     position = position_dodge(width = .9),
-    vjust = -0.5, #hjust = .5,
+    vjust = 0.35, hjust = -0.1,
     size = 3
   ) +
-  labs(x = "manufacturer", y = "Frequência") +
-  theme_estat()
-ggsave("colunas-uni-freq.pdf", width = 158, height = 93, units = "mm"
-)
-
-#1970
-
-banco_1970 <- banco1 %>%
-  filter(decada == "1970")
-
-#1980
-
-banco_1980 <- banco1 %>%
-  filter(decada == "1980")
-
-#1990
-
-banco_1990 <- banco1 %>%
-  filter(decada == "1990")
-
-#2000
-
-banco_2000 <- banco1 %>%
-  filter(decada == "2000")
-
-#2010
-
-banco_2010 <- banco1 %>%
-  filter(decada == "2010")
-
-#2020
-
-banco_2020 <- banco1 %>%
-  filter(decada == "2020")
-
-
+  labs(x = "Década", y = "Frequência") +
+  theme_estat() + coord_flip() + scale_x_discrete(limits = unique(banco1$decada)) +
+  scale_y_continuous(limits = c(0, 200)) 
+#ggsave("colunas-bi-freq.pdf", width = 158, height = 93, units = "mm")
+ggsave(filename = file.path(caminho_junior, "analise-1-colunas-bi-freq.pdf"), width = 158, height = 93, units = "mm")
