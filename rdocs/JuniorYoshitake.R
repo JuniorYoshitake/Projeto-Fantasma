@@ -12,6 +12,7 @@ install.packages("dplyr")
 library(lubridate)
 library(dplyr)
 library(tidyr)
+library(stringr)
 
 
 # arrumando theme_estat
@@ -65,6 +66,8 @@ dados <- dados %>%
 
 # Agrupar por década e formato de lançamento, e contar o número de lançamentos em cada grupo
 
+library(ggplot2)
+
 banco1 <- dados %>%
   group_by(decada, format)
 
@@ -99,3 +102,16 @@ ggplot(banco1) +
   scale_y_continuous(limits = c(0, 200)) 
 #ggsave("colunas-bi-freq.pdf", width = 158, height = 93, units = "mm")
 ggsave(filename = file.path(caminho_junior, "analise-1-colunas-bi-freq.pdf"), width = 158, height = 93, units = "mm")
+
+
+#novo gráfico ADAPTAR PEDIR LUCAS
+
+ggplot(mpg) +
+  aes(x = cty, y = hwy) +
+  geom_point(colour = "#A11D21", size = 3) +
+  labs(
+    x = "Consumo em Cidade (milhas/galão)",
+    y = "Consumo em Rodovias (milhas/galão)"
+  ) +
+  theme_estat()
+ggsave("disp_uni.pdf", width = 158, height = 93, units = "mm")
