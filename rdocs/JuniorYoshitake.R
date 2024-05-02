@@ -85,33 +85,24 @@ porcentagens <- str_c(banco1$freq_relativa, "%") %>% str_replace("
 \\.", ",")
 legendas <- str_squish(str_c(banco1$freq, " (", porcentagens, ")")
 )
+
+library(dplyr)
+
+# Renomear a coluna "format" para "formato" e a variável "Movie" para "Filme"
+banco1 <- banco1 %>%
+  rename(formato = format)
+ 
+# ALTERAR MOVIE PARA FILME 
+
 ggplot(banco1) +
-  aes(
-    x = decada, y = freq,
-    fill = format, label = legendas
-  ) +
-  geom_col(position = position_dodge2(preserve = "single", padding =
-                                        0)) +
-  geom_text(
-    position = position_dodge(width = .9),
-    vjust = 0.35, hjust = -0.1,
-    size = 3
-  ) +
+  aes(x = decada, y = freq, group = formato, colour = formato) +
+  geom_line(size = 1) +
+  geom_point(size = 2) +
   labs(x = "Década", y = "Frequência") +
-  theme_estat() + coord_flip() + scale_x_discrete(limits = unique(banco1$decada)) +
-  scale_y_continuous(limits = c(0, 200)) 
-#ggsave("colunas-bi-freq.pdf", width = 158, height = 93, units = "mm")
-ggsave(filename = file.path(caminho_junior, "analise-1-colunas-bi-freq.pdf"), width = 158, height = 93, units = "mm")
+  theme_estat() + scale_x_discrete(limits = unique(banco1$decada)) +
+  scale_y_continuous(limits = c(0, 200))
+ggsave(filename = file.path(caminho_junior, "analise-1-bivariado"), width = 158, height = 93, units = "mm")
 
 
-#novo gráfico ADAPTAR PEDIR LUCAS
 
-ggplot(mpg) +
-  aes(x = cty, y = hwy) +
-  geom_point(colour = "#A11D21", size = 3) +
-  labs(
-    x = "Consumo em Cidade (milhas/galão)",
-    y = "Consumo em Rodovias (milhas/galão)"
-  ) +
-  theme_estat()
-ggsave("disp_uni.pdf", width = 158, height = 93, units = "mm")
+
