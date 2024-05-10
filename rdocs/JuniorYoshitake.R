@@ -167,22 +167,36 @@ ggplot(mini_dataframe) +
   theme_estat()
   ggsave(filename = file.path(caminho_junior, "analise-2-uni.pdf"), width = 158, height = 93, units = "mm")
 
-# Definindo intervalos imdb
+  library(ggplot2)
   
-  # Definir os intervalos como um fator com rótulos explicativos
-  intervalos <- cut(banco2$imdb, breaks = seq(0, 10, by = 1), labels = c("0-1", "1-2", "2-3", "3-4", "4-5", "5-6", "6-7", "7-8", "8-9", "9-10"))
+  # Supondo que você já tenha um dataframe chamado banco2 com as colunas season e imdb
   
-  # Adicionar a coluna "intervalo" ao dataframe
-  banco2$intervalo <- intervalos
+  banco2$season <- ifelse(banco2$season == 1, "Temporada 1",
+                          ifelse(banco2$season == 2, "Temporada 2",
+                                 ifelse(banco2$season == 3, "Temporada 3",
+                                        ifelse(banco2$season == 4, "Temporada 4", "Outra Temporada"))))
   
-  # Usar a função table() para contar quantas observações estão em cada intervalo para cada season
-  tabela <- table(banco2$intervalo, banco2$season)
+  # Criar os intervalos imdb
+  intervalos <- cut(banco2$imdb, breaks = c(0, 3, 5, 7, 9, 10), labels = c("0-2", "3-4", "5-6", "7-8", "9-10"))
   
-  # Transformar a tabela em um dataframe
-  dfbanco2 <- as.data.frame.matrix(tabela)
+  # Criar um novo dataframe com as colunas season e intervalo
+  df_banco2 <- data.frame(intervalo = intervalos, season = banco2$season)
   
-  # Adicionar a coluna "intervalo" ao dataframe
-  dfbanco2$intervalo <- rownames(dfbanco2)
   # Exibir o dataframe resultante
-  print(df)
+  print(df_banco2)
+  
+  
+  
+  # Crie o gráfico utilizando ggplot
+  ggplot(df_banco2, aes(x = intervalo)) +
+    geom_bar(colour = "white", fill = "#A11D21",) +
+    facet_grid(. ~ season) +
+    labs(x = "Intervalo de IMDb", y = "Frequência") +
+    theme_estat(
+      strip.text = element_text(size=12),
+      strip.background = element_rect(colour="black", fill="white")
+    )
+  
+  # Salve o gráfico em um arquivo PDF
+  ggsave(filename = file.path(caminho_junior, "analise-2-bivariado-facetgrid.pdf"), width = 200, height = 93, units = "mm")
   
