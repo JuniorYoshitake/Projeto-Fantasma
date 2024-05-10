@@ -200,3 +200,84 @@ ggplot(mini_dataframe) +
   # Salve o gráfico em um arquivo PDF
   ggsave(filename = file.path(caminho_junior, "analise-2-bivariado-facetgrid.pdf"), width = 200, height = 93, units = "mm")
   
+  ####################################################################################################
+  
+  #ANALISE 3 - Top 3 terrenos mais frequentes pela ativação da armadilha:
+  
+  dados3 <- read_csv("banco/banco_final.csv")
+  
+  dados3resumo <- data.frame(dados3$setting_terrain, dados3$trap_work_first)
+  
+  # Exibir o dataframe resultante
+  print(dados3resumo)
+
+  # Supondo que "dados3" seja o nome do seu dataframe e "setting_terrain" seja o nome da coluna
+  
+  # Obter os valores únicos na coluna "setting_terrain"
+  valores_unicos <- unique(dados3$setting_terrain)
+  
+  # Exibir os valores únicos
+  print(valores_unicos)
+  
+  
+  # Suponha que "dados3" seja o nome do seu dataframe e "setting_terrain" seja o nome da coluna que contém as variáveis categóricas
+  
+  # Suponha que "dados3" seja o nome do seu dataframe e "setting_terrain" seja o nome da coluna que contém as variáveis categóricas
+  
+  # Criar um fator com valores numéricos específicos para cada categoria
+  dados3resumo$setting_terrain_numeric <- factor(dados3$setting_terrain, levels = c("Urban", "Coast", "Island", "Cave", "Desert", "Forest", "Swamp", "Ocean", "Rural", "Snow", "Jungle", "Mountain", "Moon", "Space", "Air"), labels = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15))
+  
+  # Converter o fator em valores numéricos
+  dados3resumo$setting_terrain_numeric <- as.numeric(dados3$setting_terrain_numeric)
+  
+  # Exibir o resultado
+  print(dados3resumo)
+  
+  # Tirando NAS
+  resumo3 <- na.omit(dados3resumo)
+
+  # Supondo que "dados3" seja o nome do seu dataframe e "setting_terrain" seja o nome da coluna que contém os tipos de terrenos
+  
+  # Contar a frequência de cada tipo de terreno
+  frequencia_terrenos <- table(resumo3$setting_terrain)
+  
+  # Ordenar os resultados em ordem decrescente de frequência e selecionar os três primeiros
+  top3_terrenos <- head(sort(frequencia_terrenos, decreasing = TRUE), 3)
+  
+  # Exibir os três tipos de terrenos mais frequentes
+  print(top3_terrenos)
+  
+  tabela_frequencia <- table(resumo3$setting_terrain)
+  
+  # Exibir a tabela de frequência
+  print(tabela_frequencia)  
+  
+  # Supondo que "dados3" seja o nome do seu dataframe e "setting_terrain" seja o nome da coluna que contém os tipos de terrenos
+  
+  # Criar uma tabela de frequência de todos os terrenos
+  tabela_frequencia <- table(resumo3$dados3.setting_terrain)
+  
+  # Obter os três terrenos mais frequentes
+  top3_terrenos <- names(head(sort(tabela_frequencia, decreasing = TRUE), 3))
+  
+  # Criar um novo dataframe contendo apenas os três terrenos mais frequentes
+  dados_top3 <- subset(resumo3, dados3.setting_terrain %in% top3_terrenos)
+  
+  # Exibir o novo dataframe
+  print(dados_top3)
+  
+  
+  # Contabilizando os valores "TRUE" e "FALSE" pela coluna setting_terrain_numeric
+  contagem <- aggregate(dados3.trap_work_first ~ setting_terrain_numeric, data = dados_top3, FUN = table)
+  
+  # Criando um novo dataframe com os resultados
+  novo_dataframe <- data.frame(
+    setting_terrain_numeric = contagem$setting_terrain_numeric,
+    FALSE = contagem$dados3.trap_work_first[, "FALSE"],
+    TRUE = contagem$dados3.trap_work_first[, "TRUE"]
+  )
+  
+  # Exibindo o novo dataframe
+  print(novo_dataframe)
+  
+  
