@@ -159,15 +159,17 @@ dados_gerais <- data.frame(Media = media_todas_temporadas, Variance = variancia_
 
 #Gráfico
 
-ggplot(mini_dataframe) +
-  aes(x=Season, y=Mean, group=1) +
-  geom_line(size=1,colour="#A11D21") + geom_point(colour="#A11D21",
-                                                  size=2) +
-  labs(x="Temporada", y="Média IMDB") +
-  theme_estat()
-  ggsave(filename = file.path(caminho_junior, "analise-2-uni.pdf"), width = 158, height = 93, units = "mm")
+library(ggplot2)
 
-  library(ggplot2)
+ggplot(data = mini_dataframe, aes(x = Season, y = Mean)) +
+  geom_bar(stat = "identity", fill = "#A11D21", width = 0.7) +
+  labs(x = "Temporada", y = "Média IMDb") +
+  theme_estat()
+
+# Salvar o gráfico como um arquivo PDF
+ggsave(filename = file.path(caminho_junior, "analise-2-uni.pdf"), 
+       width = 158, height = 93, units = "mm")
+
   
   # Supondo que você já tenha um dataframe chamado banco2 com as colunas season e imdb
   
@@ -211,7 +213,7 @@ ggplot(mini_dataframe) +
   # Exibir o dataframe resultante
   print(dados3resumo)
 
-  # Supondo que "dados3" seja o nome do seu dataframe e "setting_terrain" seja o nome da coluna
+  
   
   # Obter os valores únicos na coluna "setting_terrain"
   valores_unicos <- unique(dados3$setting_terrain)
@@ -220,9 +222,7 @@ ggplot(mini_dataframe) +
   print(valores_unicos)
   
   
-  # Suponha que "dados3" seja o nome do seu dataframe e "setting_terrain" seja o nome da coluna que contém as variáveis categóricas
-  
-  # Suponha que "dados3" seja o nome do seu dataframe e "setting_terrain" seja o nome da coluna que contém as variáveis categóricas
+
   
   # Criar um fator com valores numéricos específicos para cada categoria
   dados3resumo$setting_terrain_numeric <- factor(dados3$setting_terrain, levels = c("Urban", "Coast", "Island", "Cave", "Desert", "Forest", "Swamp", "Ocean", "Rural", "Snow", "Jungle", "Mountain", "Moon", "Space", "Air"), labels = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15))
@@ -236,48 +236,124 @@ ggplot(mini_dataframe) +
   # Tirando NAS
   resumo3 <- na.omit(dados3resumo)
 
-  # Supondo que "dados3" seja o nome do seu dataframe e "setting_terrain" seja o nome da coluna que contém os tipos de terrenos
+
+  resumo3 <- resumo3 %>%
+    rename(terreno = dados3.setting_terrain,
+           trap = dados3.trap_work_first,
+           numero = setting_terrain_numeric)
+
+  # Calculamos a tabela de frequência dos números
+  frequencia_numeros <- table(resumo3$numero)
   
-  # Contar a frequência de cada tipo de terreno
-  frequencia_terrenos <- table(resumo3$setting_terrain)
+  # Ordenamos a tabela de frequência em ordem decrescente e selecionamos os três números mais frequentes
+  numeros_mais_frequentes <- names(head(sort(frequencia_numeros, decreasing = TRUE), 3))
   
-  # Ordenar os resultados em ordem decrescente de frequência e selecionar os três primeiros
-  top3_terrenos <- head(sort(frequencia_terrenos, decreasing = TRUE), 3)
+  # Filtramos o dataframe original para incluir apenas os três números mais frequentes
+  resumo3_filtrado <- resumo3[resumo3$numero %in% numeros_mais_frequentes, ]
   
-  # Exibir os três tipos de terrenos mais frequentes
-  print(top3_terrenos)
+  # Exibindo o dataframe filtrado
+  print(resumo3_filtrado) 
+
+  library(dplyr)
   
-  tabela_frequencia <- table(resumo3$setting_terrain)
+  # Suponha que você tenha um dataframe chamado "resumo3_filtrado" com a coluna "numero"
   
-  # Exibir a tabela de frequência
-  print(tabela_frequencia)  
-  
-  # Supondo que "dados3" seja o nome do seu dataframe e "setting_terrain" seja o nome da coluna que contém os tipos de terrenos
-  
-  # Criar uma tabela de frequência de todos os terrenos
-  tabela_frequencia <- table(resumo3$dados3.setting_terrain)
-  
-  # Obter os três terrenos mais frequentes
-  top3_terrenos <- names(head(sort(tabela_frequencia, decreasing = TRUE), 3))
-  
-  # Criar um novo dataframe contendo apenas os três terrenos mais frequentes
-  dados_top3 <- subset(resumo3, dados3.setting_terrain %in% top3_terrenos)
-  
-  # Exibir o novo dataframe
-  print(dados_top3)
+  resumo3_filtrado <- resumo3_filtrado %>%
+    mutate(numero = case_when(
+      numero == 1 ~ "Urban",
+      numero == 6 ~ "Rural",
+      numero == 9 ~ "Forest",
+      TRUE ~ as.character(numero)  # Para manter os valores que não são 1, 6 ou 9
+    ))
   
   
-  # Contabilizando os valores "TRUE" e "FALSE" pela coluna setting_terrain_numeric
-  contagem <- aggregate(dados3.trap_work_first ~ setting_terrain_numeric, data = dados_top3, FUN = table)
+  #grafico
   
-  # Criando um novo dataframe com os resultados
-  novo_dataframe <- data.frame(
-    setting_terrain_numeric = contagem$setting_terrain_numeric,
-    FALSE = contagem$dados3.trap_work_first[, "FALSE"],
-    TRUE = contagem$dados3.trap_work_first[, "TRUE"]
+  library(ggplot2)
+  library(dplyr)
+  library(forcats) # para usar fct_reorder
+  
+  trans_drv <- resumo3_filtrado %>%
+    group_by(numero, trap) %>%
+    summarise(freq = n()) %>%
+    mutate(
+      freq_relativa = round(freq / sum(freq) * 100, 1)
+    )
+  
+  porcentagens <- str_c(trans_drv$freq_relativa, "%") %>% str_replace("
+\\.", ",")
+  legendas <- str_squish(str_c(trans_drv$freq, " (", porcentagens, ")")
   )
   
-  # Exibindo o novo dataframe
-  print(novo_dataframe)
+  
+  ggplot(trans_drv) +
+    aes(
+      x = fct_reorder(numero, freq, .desc = TRUE), 
+      y = freq,
+      fill = trap, 
+      label = legendas
+    ) +
+    geom_col(position = position_dodge2(preserve = "single", padding = 0)) +
+    geom_text( 
+      position = position_dodge(width = 0.9),
+      vjust = -0.5, hjust = 0.5,
+      size = 2.5
+  
+    ) +
+    labs(x = "Terreno", y = "Frequência", fill = "Armadilha") +
+    theme_estat()
+  ggsave(filename = file.path(caminho_junior, "analise-3-colunas-bi-freq.pdf"), width = 158, height = 93, units = "mm")
+
+  # separando para tabela
+  
+  library(dplyr)
+  
+  # Suponha que você tenha um dataframe chamado "dados" com a coluna "set_terrain"
+  
+  library(dplyr)
+  
+  # Suponha que você tenha um dataframe chamado "dados" com as colunas "setting_terrain" e "trap_work_first"
+  
+  # Calcular a contagem de ocorrências de cada terreno
+  contagem_terrenos <- count(dados3, setting_terrain)
+  
+  # Selecionar os cinco terrenos mais frequentes
+  cinco_terrenos_mais_frequentes <- contagem_terrenos %>%
+    top_n(5, wt = n) %>%
+    pull(setting_terrain)
+  
+  # Filtrar o dataframe original para incluir apenas os cinco terrenos mais frequentes
+  mini3 <- dados3 %>%
+    filter(setting_terrain %in% cinco_terrenos_mais_frequentes) %>%
+    select(setting_terrain, trap_work_first)
+  
+  mini3 <- na.omit(mini3)
+  
+  # Exibir o mini dataframe
+  print(mini3)
+  
+  library(dplyr)
+  
+  # Calcula a tabela de frequência para cada variável de setting_terrain e trap_work_first
+  mini3freq <- mini3 %>%
+    group_by(setting_terrain, trap_work_first) %>%
+    summarise(frequencia = n()) %>%
+    arrange(setting_terrain, trap_work_first)
+  
+  # Exibe a tabela de frequência
+  print(mini3freq)
+  
+  
+  # Remover linhas com NA na coluna "setting_terrain"
+  dados3_sem_na <- na.omit(dados3$setting_terrain)
+  
+  # Calcular a frequência de cada variável após remover os NA
+  frequencia_setting_terrain <- table(dados3_sem_na)
+  
+  # Ordenar os valores de frequência do mais frequente para o menos frequente
+  frequencia_setting_terrain_ordenada <- sort(frequencia_setting_terrain, decreasing = TRUE)
+  
+  # Exibir a frequência de cada variável ordenada
+  print(frequencia_setting_terrain_ordenada)
   
   
