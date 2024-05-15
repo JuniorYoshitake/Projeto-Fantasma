@@ -159,48 +159,30 @@ dados_gerais <- data.frame(Media = media_todas_temporadas, Variance = variancia_
 
 #Gráfico
 
-library(ggplot2)
 
-ggplot(data = mini_dataframe, aes(x = Season, y = Mean)) +
-  geom_bar(stat = "identity", fill = "#A11D21", width = 0.7) +
-  labs(x = "Temporada", y = "Média IMDb") +
-  theme_estat()
-
-# Salvar o gráfico como um arquivo PDF
-ggsave(filename = file.path(caminho_junior, "analise-2-uni.pdf"), 
-       width = 158, height = 93, units = "mm")
-
-  
-  # Supondo que você já tenha um dataframe chamado banco2 com as colunas season e imdb
-  
   banco2$season <- ifelse(banco2$season == 1, "Temporada 1",
                           ifelse(banco2$season == 2, "Temporada 2",
                                  ifelse(banco2$season == 3, "Temporada 3",
                                         ifelse(banco2$season == 4, "Temporada 4", "Outra Temporada"))))
   
-  # Criar os intervalos imdb
-  intervalos <- cut(banco2$imdb, breaks = c(0, 3, 5, 7, 9, 10), labels = c("0-2", "3-4", "5-6", "7-8", "9-10"))
+
   
-  # Criar um novo dataframe com as colunas season e intervalo
-  df_banco2 <- data.frame(intervalo = intervalos, season = banco2$season)
+  # Primeiro, converta a variável 'season' para fator e ordene as temporadas
+  banco2$season <- factor(banco2$season, levels = sort(unique(banco2$season)))
   
-  # Exibir o dataframe resultante
-  print(df_banco2)
+  # Criar o boxplot com ggplot2
+  ggplot(banco2) +
+    aes(x = season, y = imdb) +
+    geom_boxplot(fill = "#A11D21", width = 0.5) +
+    stat_summary(
+      fun = "mean", geom = "point", shape = 23, size = 3, fill = "white"
+    ) +
+    labs(x = "Temporada", y = "Notas IMDB") +
+    theme_estat()  # Supondo que 'theme_estat' seja um tema personalizado, você pode substituí-lo por 'theme_minimal' ou seu tema preferido
+  
+  ggsave(filename = file.path(caminho_junior, "analise-2-boxplot.pdf"), width = 185, height = 93, units = "mm")
   
   
-  
-  # Crie o gráfico utilizando ggplot
-  ggplot(df_banco2, aes(x = intervalo)) +
-    geom_bar(colour = "white", fill = "#A11D21",) +
-    facet_grid(. ~ season) +
-    labs(x = "Intervalo de IMDb", y = "Frequência") +
-    theme_estat(
-      strip.text = element_text(size=12),
-      strip.background = element_rect(colour="black", fill="white")
-    )
-  
-  # Salve o gráfico em um arquivo PDF
-  ggsave(filename = file.path(caminho_junior, "analise-2-bivariado-facetgrid.pdf"), width = 200, height = 93, units = "mm")
   
   ####################################################################################################
   
@@ -356,4 +338,40 @@ ggsave(filename = file.path(caminho_junior, "analise-2-uni.pdf"),
   # Exibir a frequência de cada variável ordenada
   print(frequencia_setting_terrain_ordenada)
   
+  
+  #tabela nova
+  
+  dados3_clean <- dados3[!is.na(dados3$setting_terrain), ]
+  
+  cont2 <- count(dados3_clean, setting_terrain)
+
+  # Instale o pacote dplyr se ainda não estiver instalado
+  # install.packages("dplyr")
+  
+  # Carregar o pacote dplyr
+  library(dplyr)
+  
+  # Data frame com valores NA em trap_work_first
+  dados_na <- dados3 %>% filter(is.na(trap_work_first))
+  
+  # Data frame com valores não NA em trap_work_first
+  dados_not_na <- dados3 %>% filter(!is.na(trap_work_first))
+
+  
+  # Instalar o pacote dplyr se ainda não estiver instalado
+  # install.packages("dplyr")
+  
+  # Carregar o pacote dplyr
+  library(dplyr)
+  
+  dados_summary <- dados3 %>%
+    group_by(setting_terrain) %>%
+    summarise(
+      na_count = sum(is.na(trap_work_first)),
+      not_na_count = sum(!is.na(trap_work_first))
+    ) %>%
+    mutate(total_count = na_count + not_na_count)
+  
+  # Verificar o resultado
+  print(dados_summary)
   
