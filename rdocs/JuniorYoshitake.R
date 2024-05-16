@@ -375,3 +375,30 @@ dados_gerais <- data.frame(Media = media_todas_temporadas, Variance = variancia_
   # Verificar o resultado
   print(dados_summary)
   
+  
+# analise 4
+  
+ banco4 <- read_csv("banco/banco_final.csv")
+ 
+ resumo4 <- data.frame(IMDB = banco4$imdb, engajamento = banco4$engagement)
+ 
+ correlacao <- cor(resumo4$IMDB, resumo4$engajamento, use = "complete.obs")
+ 
+ modelo <- lm(engagemento ~ IMDB, data = resumo4)
+ 
+ mediaimdb <- mean(resumo4$IMDB)
+ 
+ mediaeng <- mean(resumo4$engajamento)
+ #grafico 4
+ 
+ ggplot(resumo4) +
+   aes(x = IMDB, y = engajamento) +
+   geom_point(colour = "#A11D21", size = 3) +
+   geom_smooth(method = "lm", color = "#003366", se = FALSE) +
+   labs(
+     x = "Nota IMDB",
+     y = "Engajamento"
+   ) +
+   theme_estat()
+ ggsave(filename = file.path(caminho_junior, "analise-4-disp-bi-freq.pdf"), width = 158, height = 93, units = "mm")
+ 
