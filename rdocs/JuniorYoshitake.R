@@ -492,4 +492,15 @@ dados_gerais <- data.frame(Media = media_todas_temporadas, Variance = variancia_
    print_quadro_resumo(var_name = engajamento)
  
  variancia <- var(resumo4$engajamento)
+
+ 
+ # ANALISE 5 Variação da nota de 
+ #engajamento pelo personagem que 
+ #onseguiu capturar o monstro:
+ 
+ banco5 <- read_csv("banco/banco_final.csv")
+ 
+ resumo5 <- data.frame(banco5$engagement, banco5$caught_fred, banco5$caught_daphnie, banco5$caught_velma, banco5$caught_shaggy, banco5$caught_scooby, banco5$caught_other)
+ 
+ colnames(resumo5) <- c("engajamento", "fred", "daphnie", "velma", "shaggy", "scooby", "other")
  
