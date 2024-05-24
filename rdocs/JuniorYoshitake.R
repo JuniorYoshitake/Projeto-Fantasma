@@ -502,5 +502,44 @@ dados_gerais <- data.frame(Media = media_todas_temporadas, Variance = variancia_
  
  resumo5 <- data.frame(banco5$engagement, banco5$caught_fred, banco5$caught_daphnie, banco5$caught_velma, banco5$caught_shaggy, banco5$caught_scooby, banco5$caught_other)
  
- colnames(resumo5) <- c("engajamento", "fred", "daphnie", "velma", "shaggy", "scooby", "other")
+ colnames(resumo5) <- c("engajamento", "Fred", "Daphnie", "Velma", "Shaggy", "Scooby", "Outros")
+
+#
+ 
+ # Transformando colunas em uma única coluna
+ resumo5_long <- pivot_longer(resumo5, 
+                              cols = c(Fred, Daphnie, Velma, Shaggy, Scooby, Outros), 
+                              names_to = "personagem", 
+                              values_to = "captured")
+ 
+ # Filtrando apenas as linhas onde 'captured' é TRUE
+ resumo5_captured <- resumo5_long[resumo5_long$captured == TRUE, ]
+ 
+ # Removendo a coluna 'captured' pois só temos TRUE agora
+ resumo5_captured <- resumo5_captured[, -3]
+ 
+ # Visualizando o resultado
+ print(resumo5_captured)
+ 
+ # Retirando NAs
+ 
+ resumo5_captured <- na.omit(resumo5_captured)
+ 
+ # Ordenando
+ 
+ ordem_personagens <- c("Fred", "Daphnie", "Velma", "Shaggy", "Scooby", "Outros")
+ 
+ resumo5_captured$personagem <- factor(resumo5_captured$personagem, levels = ordem_personagens)
+ 
+ ggplot(resumo5_captured) +
+   aes(x = personagem, y = engajamento) +
+   geom_boxplot(fill = "#A11D21", width = 0.5) +
+   stat_summary(
+     fun = "mean", geom = "point", shape = 23, size = 3, fill = "white"
+   ) +
+   labs(x = "Capturador", y = "Engajamento") +
+   theme_estat()  +
+   scale_y_continuous(breaks = seq(0, ceiling(max(resumo5_captured$engajamento)), by = 25))
+ ggsave(filename = file.path(caminho_junior, "analise-5-boxplot.pdf"), width = 185, height = 93, units = "mm")
+ 
  
