@@ -542,4 +542,24 @@ dados_gerais <- data.frame(Media = media_todas_temporadas, Variance = variancia_
    scale_y_continuous(breaks = seq(0, ceiling(max(resumo5_captured$engajamento)), by = 25))
  ggsave(filename = file.path(caminho_junior, "analise-5-boxplot.pdf"), width = 185, height = 93, units = "mm")
  
+ # Carregar o pacote dplyr
+ install.packages("dplyr")
+ library(dplyr)
+ 
+ # Calcular estatísticas descritivas para cada personagem
+ estatisticas_engajamento <- resumo5_captured %>%
+   group_by(personagem) %>%
+   summarise(
+     media = round(mean(engajamento, na.rm = TRUE), 2),
+     variancia = round(var(engajamento, na.rm = TRUE), 2),
+     desvio_padrao = round(sd(engajamento, na.rm = TRUE), 2),
+     minimo = round(min(engajamento, na.rm = TRUE), 2),
+     maximo = round(max(engajamento, na.rm = TRUE), 2),
+     mediana = round(median(engajamento, na.rm = TRUE), 2),
+     n = n()
+   )
+ 
+ 
+ # Visualizar o resultado
+ print(estatisticas_engajamento)
  
