@@ -109,34 +109,45 @@ ggplot(banco1) +
   
 #ANALISE 2 - Variação da nota IMDB por temporada dos episódios:
   
-banco2 <- dados 
-
-banco2 <- subset(banco2, format == "Serie")  
-
-banco2<- subset(banco2, season != "Special")
-
-# Calculando a variância de 'imdb' agrupada por 'season'
-variancia_por_season <- tapply(banco2$imdb, banco2$season, var)
-
-# Visualizando os resultados
-print(variancia_por_season)
-
-
-# Calculando a média de 'imdb' agrupada por 'season'
-media_por_season <- aggregate(imdb ~ season, data = banco2, FUN = mean)
-
-# Visualizando os resultados
-print(media_por_season)
-
-# Calculando o desvio padrão das médias por temporada
-desvio_padrao_por_season <- tapply(banco2$imdb, banco2$season, sd)
-
-
-# Criando um novo data frame com os dados de variância e média por temporada
-mini_dataframe <- data.frame(Season = names(variancia_por_season),
-                             Variance = variancia_por_season,
-                             Mean = media_por_season$imdb,
-                             DesvioPadrao = desvio_padrao_por_season)
+  # Suponha que 'dados' é seu data frame original
+  banco2 <- dados
+  
+  # Filtra para incluir apenas séries e excluir episódios especiais
+  banco2 <- subset(banco2, format == "Serie")
+  banco2 <- subset(banco2, season != "Special")
+  
+  # Calcula a variância de 'imdb' agrupada por 'season'
+  variancia_por_season <- tapply(banco2$imdb, banco2$season, var)
+  
+  # Visualiza os resultados
+  print(variancia_por_season)
+  
+  # Calcula a média de 'imdb' agrupada por 'season'
+  media_por_season <- aggregate(imdb ~ season, data = banco2, FUN = mean)
+  
+  # Visualiza os resultados
+  print(media_por_season)
+  
+  # Calcula o desvio padrão de 'imdb' agrupado por 'season'
+  desvio_padrao_por_season <- tapply(banco2$imdb, banco2$season, sd)
+  
+  print(desvio_padrao_por_season)
+  
+  # Calcula o coeficiente de variação por 'season'
+  coeficiente_variacao <- (desvio_padrao_por_season / media_por_season$imdb) * 100
+  
+  # Cria um novo data frame com os dados de variância, média, desvio padrão e coeficiente de variação por temporada
+  mini_dataframe <- data.frame(
+    Season = names(variancia_por_season),
+    Variance = variancia_por_season,
+    Mean = media_por_season$imdb,
+    DesvioPadrao = desvio_padrao_por_season,
+    CoeficienteVariacao = coeficiente_variacao
+  )
+  
+  # Visualiza o novo data frame
+  print(mini_dataframe)
+  
 
 # Visualizando o novo data frame
 print(mini_dataframe)
@@ -500,15 +511,31 @@ dados_gerais <- data.frame(Media = media_todas_temporadas, Variance = variancia_
  
  banco5 <- read_csv("banco/banco_final.csv")
  
- resumo5 <- data.frame(banco5$engagement, banco5$caught_fred, banco5$caught_daphnie, banco5$caught_velma, banco5$caught_shaggy, banco5$caught_scooby, banco5$caught_other)
+ # Criando o DataFrame resumo5
+ resumo5 <- data.frame(
+   engagement = banco5$engagement,
+   caught_fred = banco5$caught_fred,
+   caught_daphnie = banco5$caught_daphnie,
+   caught_velma = banco5$caught_velma,
+   caught_shaggy = banco5$caught_shaggy,
+   caught_scooby = banco5$caught_scooby,
+   caught_other = banco5$caught_other
+ )
  
- colnames(resumo5) <- c("engajamento", "Fred", "Daphnie", "Velma", "Shaggy", "Scooby", "Outros")
 
-#
+ 
+ # Adicionando uma coluna para contabilizar quando todas as outras são FALSE
+ resumo5$all_false <- rowSums(resumo5[, -1] == FALSE) == (ncol(resumo5) - 1)  
+ 
+  # Renomeando as colunas
+ colnames(resumo5) <- c("engajamento", "Fred", "Daphnie", "Velma", "Shaggy", "Scooby", "Outros", "Nenhum")
+ 
+ # Visualizando o resultado
+ print(resumo5)
  
  # Transformando colunas em uma única coluna
  resumo5_long <- pivot_longer(resumo5, 
-                              cols = c(Fred, Daphnie, Velma, Shaggy, Scooby, Outros), 
+                              cols = c(Fred, Daphnie, Velma, Shaggy, Scooby, Outros, Nenhum), 
                               names_to = "personagem", 
                               values_to = "captured")
  
@@ -525,22 +552,23 @@ dados_gerais <- data.frame(Media = media_todas_temporadas, Variance = variancia_
  
  resumo5_captured <- na.omit(resumo5_captured)
  
- # Ordenando
+ #grafico
  
- ordem_personagens <- c("Fred", "Daphnie", "Velma", "Shaggy", "Scooby", "Outros")
- 
- resumo5_captured$personagem <- factor(resumo5_captured$personagem, levels = ordem_personagens)
+ library(ggplot2)
  
  ggplot(resumo5_captured) +
-   aes(x = personagem, y = engajamento) +
+   aes(x = reorder(personagem, engajamento, FUN = median), y = engajamento) +
    geom_boxplot(fill = "#A11D21", width = 0.5) +
    stat_summary(
      fun = "mean", geom = "point", shape = 23, size = 3, fill = "white"
    ) +
    labs(x = "Capturador", y = "Engajamento") +
-   theme_estat()  +
+   theme_estat() +
    scale_y_continuous(breaks = seq(0, ceiling(max(resumo5_captured$engajamento)), by = 25))
- ggsave(filename = file.path(caminho_junior, "analise-5-boxplot.pdf"), width = 185, height = 93, units = "mm")
+ 
+ # Salva o gráfico
+ ggsave(filename = file.path(caminho_junior, "analise-5-boxplot.pdf"), width = 185, height = 93, units =  "mm")
+          
  
  # Carregar o pacote dplyr
  install.packages("dplyr")
@@ -553,13 +581,49 @@ dados_gerais <- data.frame(Media = media_todas_temporadas, Variance = variancia_
      media = round(mean(engajamento, na.rm = TRUE), 2),
      variancia = round(var(engajamento, na.rm = TRUE), 2),
      desvio_padrao = round(sd(engajamento, na.rm = TRUE), 2),
+     coeficiente_variacao = round((desvio_padrao / media) * 100, 2),  # Cálculo do CV
      minimo = round(min(engajamento, na.rm = TRUE), 2),
      maximo = round(max(engajamento, na.rm = TRUE), 2),
      mediana = round(median(engajamento, na.rm = TRUE), 2),
+     primeiro_quartil = round(quantile(engajamento, 0.25, na.rm = TRUE), 2),
+     terceiro_quartil = round(quantile(engajamento, 0.75, na.rm = TRUE), 2),
      n = n()
    )
  
  
  # Visualizar o resultado
  print(estatisticas_engajamento)
+
+ # Criar um DataFrame com as estatísticas descritivas
+ estatisticas_df <- data.frame(
+   personagem = estatisticas_engajamento$personagem,
+   media = estatisticas_engajamento$media,
+   variancia = estatisticas_engajamento$variancia,
+   desvio_padrao = estatisticas_engajamento$desvio_padrao,
+   coeficiente_variacao = estatisticas_engajamento$coeficiente_variacao,
+   minimo = estatisticas_engajamento$minimo,
+   maximo = estatisticas_engajamento$maximo,
+   mediana = estatisticas_engajamento$mediana,
+   primeiro_quartil = estatisticas_engajamento$primeiro_quartil,
+   terceiro_quartil = estatisticas_engajamento$terceiro_quartil,
+   n = estatisticas_engajamento$n
+ )
  
+ # Carregar o pacote dplyr
+ library(dplyr)
+ 
+ # Ordenar o DataFrame
+ estatisticas_df <- estatisticas_df %>%
+   arrange(
+     ifelse(personagem == "Fred", 1,
+            ifelse(personagem == "Daphnie", 2,
+                   ifelse(personagem == "Velma", 3,
+                          ifelse(personagem == "Shaggy", 4,
+                                 ifelse(personagem == "Scooby", 5,
+                                        ifelse(personagem == "Outros", 6, 7)))))))
+ 
+ 
+ # Visualizar o DataFrame
+ print(estatisticas_df)
+ 
+  
