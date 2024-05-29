@@ -125,32 +125,40 @@ ggplot(banco1) +
   # Calcula a média de 'imdb' agrupada por 'season'
   media_por_season <- aggregate(imdb ~ season, data = banco2, FUN = mean)
   
-  # Visualiza os resultados
-  print(media_por_season)
-  
   # Calcula o desvio padrão de 'imdb' agrupado por 'season'
   desvio_padrao_por_season <- tapply(banco2$imdb, banco2$season, sd)
-  
-  print(desvio_padrao_por_season)
   
   # Calcula o coeficiente de variação por 'season'
   coeficiente_variacao <- (desvio_padrao_por_season / media_por_season$imdb) * 100
   
-  # Cria um novo data frame com os dados de variância, média, desvio padrão e coeficiente de variação por temporada
+  # Calcula o mínimo de 'imdb' agrupado por 'season'
+  minimo_por_season <- tapply(banco2$imdb, banco2$season, min)
+  
+  # Calcula a mediana de 'imdb' agrupada por 'season'
+  mediana_por_season <- tapply(banco2$imdb, banco2$season, median)
+  
+  # Calcula o máximo de 'imdb' agrupado por 'season'
+  maximo_por_season <- tapply(banco2$imdb, banco2$season, max)
+  
+  # Calcula os quartis de 'imdb' agrupados por 'season'
+  quartis_por_season <- tapply(banco2$imdb, banco2$season, quantile, probs = c(0.25, 0.75))
+  
+  # Cria um novo data frame com os dados de variância, média, desvio padrão, coeficiente de variação, mínimo, mediana, máximo e quartis por temporada
   mini_dataframe <- data.frame(
-    Season = names(variancia_por_season),
-    Variance = variancia_por_season,
+    Season = names(desvio_padrao_por_season),
     Mean = media_por_season$imdb,
     DesvioPadrao = desvio_padrao_por_season,
-    CoeficienteVariacao = coeficiente_variacao
+    CoeficienteVariacao = coeficiente_variacao,
+    Minimo = minimo_por_season,
+    Mediana = mediana_por_season,
+    Maximo = maximo_por_season,
+    Q1 = sapply(quartis_por_season, `[`, 1),
+    Q3 = sapply(quartis_por_season, `[`, 2)
   )
   
-  # Visualiza o novo data frame
+  # Visualiza os resultados
   print(mini_dataframe)
   
-
-# Visualizando o novo data frame
-print(mini_dataframe)
 
 #Calculando a variância das médias
 
@@ -519,13 +527,10 @@ dados_gerais <- data.frame(Media = media_todas_temporadas, Variance = variancia_
    caught_velma = banco5$caught_velma,
    caught_shaggy = banco5$caught_shaggy,
    caught_scooby = banco5$caught_scooby,
-   caught_other = banco5$caught_other
+   caught_other = banco5$caught_other,
+   caught_not = banco5$caught_not
  )
  
-
- 
- # Adicionando uma coluna para contabilizar quando todas as outras são FALSE
- resumo5$all_false <- rowSums(resumo5[, -1] == FALSE) == (ncol(resumo5) - 1)  
  
   # Renomeando as colunas
  colnames(resumo5) <- c("engajamento", "Fred", "Daphnie", "Velma", "Shaggy", "Scooby", "Outros", "Nenhum")
